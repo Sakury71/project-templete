@@ -7,7 +7,7 @@ import com.alibaba.fastjson2.JSONWriter;
  * Author: Sakury
  * Date: 2024/8/14 18:17
  * Version: 1.0
- * Description:
+ * Description:统一返回对象
  */
 
 public record RestBean<T>(int code, T data, String message) {

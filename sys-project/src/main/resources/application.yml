@@ -1,1 +1,5 @@
-spring.application.name=sys-project
+spring:
+  security:
+    jwt:
+      key: abcdefg
+      expire: 7
