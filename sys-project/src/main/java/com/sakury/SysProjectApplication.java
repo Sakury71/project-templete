@@ -1,4 +1,4 @@
-package com.sakury.sysproject;
+package com.sakury;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
