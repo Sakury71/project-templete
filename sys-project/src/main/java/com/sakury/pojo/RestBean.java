@@ -1,4 +1,4 @@
-package com.sakury.entity;
+package com.sakury.pojo;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.alibaba.fastjson2.JSONWriter;

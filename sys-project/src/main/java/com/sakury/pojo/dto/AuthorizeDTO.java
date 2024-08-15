@@ -1,4 +1,4 @@
-package com.sakury.entity.dto;
+package com.sakury.pojo.dto;
 
 import lombok.Data;
 

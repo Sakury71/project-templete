@@ -6,7 +6,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,12 +18,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Author: Sakury
  * Date: 2024/8/14 19:54
  * Version: 1.0
- * Description:
+ * Description: Jwt工具类
  */
 
 @Component
@@ -31,6 +34,17 @@ public class JwtUtils {
     String key;
     @Value("${spring.security.jwt.expire}")
     int expire;
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
+
+    /**
+     * 创建Jwt令牌
+     *
+     * @param details
+     * @param id
+     * @param username
+     * @return
+     */
 
     public String createJwt(UserDetails details, int id, String username) {
         Algorithm algorithm = Algorithm.HMAC256(key);
@@ -75,6 +89,7 @@ public class JwtUtils {
         JWTVerifier jwtVerifier = JWT.require(algorithm).build();
         try {
             DecodedJWT verify = jwtVerifier.verify(token);
+            if (this.isInvalidToken(verify.getId())) return null;
             // 判断是否过期
             Date expiresAt = verify.getExpiresAt();
             return new Date().after(expiresAt) ? null : verify;
@@ -85,6 +100,7 @@ public class JwtUtils {
 
     /**
      * 将jwt转换为UserDetails
+     *
      * @param jwt
      * @return
      */
@@ -99,11 +115,38 @@ public class JwtUtils {
 
     /**
      * 将jwt转换为id
+     *
      * @param jwt
      * @return
      */
     public Integer toId(DecodedJWT jwt) {
         Map<String, Claim> claims = jwt.getClaims();
         return claims.get("id").asInt();
+    }
+
+    public boolean invalidateJwt(String headerToken) {
+        String token = this.convertJwt(headerToken);
+        if (token == null) return false;
+        Algorithm algorithm = Algorithm.HMAC256(key);
+        JWTVerifier jwtVerifier = JWT.require(algorithm).build();
+        try {
+            DecodedJWT jwt = jwtVerifier.verify(token);
+            String id = jwt.getId();
+            return deleteToken(id, jwt.getExpiresAt());
+        } catch (JWTVerificationException e) {
+            return false;
+        }
+    }
+
+    private boolean deleteToken(String uuid, Date time) {
+        if (this.isInvalidToken(uuid)) return false;
+        Date now = new Date();
+        long expire = Math.max(0, time.getTime() - now.getTime());
+        stringRedisTemplate.opsForValue().set(Const.JWT_BLACK_LIST + uuid, "", expire, TimeUnit.MILLISECONDS);
+        return true;
+    }
+
+    private boolean isInvalidToken(String uuid) {
+        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(Const.JWT_BLACK_LIST + uuid));
     }
 }

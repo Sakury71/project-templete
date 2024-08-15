@@ -1,8 +1,8 @@
 package com.sakury.config;
 
-import com.sakury.entity.RestBean;
-import com.sakury.entity.dto.AuthorizeDTO;
 import com.sakury.filter.JwtAuthorizeFilter;
+import com.sakury.pojo.RestBean;
+import com.sakury.pojo.dto.AuthorizeDTO;
 import com.sakury.utils.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +47,7 @@ public class SecurityConfiguration {
                         .successHandler(this::onAuthenticationSuccess)
                 )
                 .logout(conf -> conf
-                        .logoutUrl("api/auth/logout")
+                        .logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler(this::onLogoutSuccess)
                 )
                 .exceptionHandling(conf -> conf
@@ -104,7 +104,14 @@ public class SecurityConfiguration {
 
     private void onLogoutSuccess(HttpServletRequest request,
                                  HttpServletResponse response,
-                                 Authentication authentication) {
-
+                                 Authentication authentication) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        String authorization = request.getHeader("Authorization");
+        if (jwtUtils.invalidateJwt(authorization)){
+            response.getWriter().write(RestBean.success().asJsonString());
+        }else {
+            response.getWriter().write(RestBean.failure(400,"退出登录失败").asJsonString());
+        }
     }
 }
