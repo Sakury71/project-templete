@@ -9,6 +9,8 @@ spring:
     jwt:
       key: abcdefg
       expire: 7
+    filter:
+      order: -100
 
 mybatis:
   #mapper配置文件
