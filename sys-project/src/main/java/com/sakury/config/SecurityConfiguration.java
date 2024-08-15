@@ -3,6 +3,7 @@ package com.sakury.config;
 import com.sakury.filter.JwtAuthorizeFilter;
 import com.sakury.pojo.RestBean;
 import com.sakury.pojo.dto.AuthorizeDTO;
+import com.sakury.service.UserService;
 import com.sakury.utils.JwtUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +34,8 @@ public class SecurityConfiguration {
     JwtUtils jwtUtils;
     @Resource
     JwtAuthorizeFilter jwtAuthorizeFilter;
+    @Resource
+    UserService userService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -85,10 +88,11 @@ public class SecurityConfiguration {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         User user = (User) authentication.getPrincipal();
-        String token = jwtUtils.createJwt(user, 1, "sakury");
+        com.sakury.pojo.entity.User account = userService.selectUserByUsernameOrEmail(user.getUsername());
+        String token = jwtUtils.createJwt(user, account.getUid().intValue(), account.getUsername());
         AuthorizeDTO authorizeDTO = new AuthorizeDTO();
-        authorizeDTO.setUsername("sakury");
-        authorizeDTO.setRole(" ");
+        authorizeDTO.setUsername(account.getUsername());
+        authorizeDTO.setRole(account.getRole());
         authorizeDTO.setToken(token);
         authorizeDTO.setExpireTime(jwtUtils.expireTime());
         response.getWriter().write(RestBean.success(authorizeDTO).asJsonString());

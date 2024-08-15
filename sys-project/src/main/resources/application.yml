@@ -9,3 +9,10 @@ spring:
     jwt:
       key: abcdefg
       expire: 7
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true

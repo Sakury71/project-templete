@@ -2,6 +2,7 @@ package com.sakury.pojo.dto;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -11,7 +12,7 @@ import java.util.Date;
  * Description: 授权对象模型
  */
 @Data
-public class AuthorizeDTO {
+public class AuthorizeDTO implements Serializable {
     private String username;
     private String role;
     private String token;
